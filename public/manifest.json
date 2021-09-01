@@ -1,0 +1,24 @@
+{
+  "name": "Shot",
+  "short_name": "Shot",
+  "display": "standalone",
+  "orientation": "portrait",
+  "theme_color": "#FFFFFF",
+  "background_color": "#FFFFFF",
+  "start_url": "/",
+  "gcm_sender_id": "233654909190",
+  "icons": [
+    {
+      "src": "icons/shot-glass-128.png",
+      "sizes": "128x128",
+      "type": "image/png",
+      "purpose": "maskable any"
+    },
+    {
+      "src": "icons/shot-glass-528.png",
+      "sizes": "528x528",
+      "type": "image/png",
+      "purpose": "maskable any"
+    }
+  ]
+}
