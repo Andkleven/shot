@@ -1,7 +1,6 @@
 import { drinks } from "../data/data";
 import { Button, Grid, Typography } from "@material-ui/core";
 import { getRandomTime } from "../pages/index";
-// import { FillView } from "@phormix/ui";
 
 export default function Drink({
   drink,
@@ -11,7 +10,6 @@ export default function Drink({
   startTime: () => void;
 }) {
   return (
-    // <FillView>
     <Grid
       container
       direction="column"
@@ -22,7 +20,7 @@ export default function Drink({
         {drink}
       </Typography>
 
-      <audio autoPlay src="569847__danlucaz__gun-shot-1.wav" />
+      {/* <audio autoPlay src="212739__taira-komori__drinking2.mp3" /> */}
 
       <iframe src={drinks[drink]} allowFullScreen></iframe>
 
@@ -35,6 +33,5 @@ export default function Drink({
         En til!
       </Button>
     </Grid>
-    // </FillView>
   );
 }

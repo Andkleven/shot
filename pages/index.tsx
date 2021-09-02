@@ -11,8 +11,9 @@ import {
 import { drinks } from "../data/data";
 import Drink from "../components/Drink";
 // import { FillView } from "@phormix/ui";
-import { firebaseCloudMessaging, app } from "../utils/webPush";
-import { onMessage } from "firebase/messaging";
+import { firebaseCloudMessaging } from "../utils/webPush";
+import "firebase/messaging";
+import firebase from "firebase/app";
 
 type State = Partial<
   {
@@ -41,30 +42,44 @@ export function Index() {
     const result = (Object.keys(shot) as (keyof typeof shot)[]).filter(
       (key) => shot[key] === true
     );
-    setTypeOfDrink(result[Math.floor(Math.random() * (result.length - 1))]);
+    const shotType = result[Math.floor(Math.random() * (result.length - 1))];
+    setTypeOfDrink(shotType);
+    return shotType;
   }
+  useEffect(() => {
+    setToken();
+    async function setToken() {
+      try {
+        const token = await firebaseCloudMessaging.init();
+        if (token) {
+          console.log("token", token);
+        }
+      } catch (error) {
+        console.log(error);
+      }
+    }
+  }, []);
 
   useEffect(() => {
-    navigator.serviceWorker.register("sw.js");
-    Notification.requestPermission(function (result) {
-      console.log(result);
-    });
+    async function test() {
+      await navigator.serviceWorker.register("sw.js");
+      Notification.requestPermission();
+    }
+    test();
   }, []);
 
   function startTime() {
     setIsRunning(true);
-    setNewDrink();
+    const shotType = setNewDrink();
     setTimeout(() => {
-      console.log(123);
-
       if (Notification.permission === "granted") {
         navigator.serviceWorker.ready.then(function (registration) {
-          console.log(234);
-
-          registration.showNotification(typeOfDrink, {
-            body: "Buzz! Buzz!",
-            image: `${typeOfDrink}.jpg`,
-            tag: typeOfDrink,
+          registration.showNotification(shotType, {
+            body: "Drikk! Drikk!",
+            image: `shot/${shotType}.jpg`,
+            tag: shotType,
+            vibrate: [200, 100, 200, 100, 200, 100, 200],
+            sound: "212739__taira-komori__drinking2.mp3",
           });
         });
       }
@@ -73,72 +88,68 @@ export function Index() {
   }
 
   return (
-    <>
+    <div className="center-context">
       {typeOfDrink === "" ? (
-        <div className="center-context">
-          <Grid
-            container
-            direction="column"
-            justifyContent="space-evenly"
-            alignItems="center"
+        <Grid
+          container
+          direction="column"
+          justifyContent="space-evenly"
+          alignItems="center"
+        >
+          <Typography align="center" variant="h1" color="error">
+            Shot Alert!
+          </Typography>
+          <Typography align="center" variant="h6" color="error">
+            Huk av for tilgjenglig shots
+          </Typography>
+          <FormGroup>
+            {(Object.keys(drinks) as (keyof typeof drinks)[]).map(
+              (drink, index) => {
+                return (
+                  <FormControlLabel
+                    key={index}
+                    checked={(shot[drink] as boolean) ?? false}
+                    onChange={() =>
+                      setShot((prevState) => {
+                        return {
+                          ...prevState,
+                          [drink]: !prevState[drink] as boolean,
+                        };
+                      })
+                    }
+                    control={<Checkbox color="error" />}
+                    label={drink}
+                  />
+                );
+              }
+            )}
+            {alert && <Alert color="error">Velg en shot!</Alert>}
+          </FormGroup>
+          <Button
+            variant="contained"
+            color="error"
+            onClick={() => {
+              const result = (
+                Object.keys(shot) as (keyof typeof shot)[]
+              ).filter((key) => shot[key] === true);
+              if (result.length === 0) {
+                setAlert(true);
+              } else {
+                startTime();
+              }
+            }}
           >
-            <Typography align="center" variant="h1" color="error">
-              Shot Alert!
-            </Typography>
-            <Typography align="center" variant="h6" color="error">
-              Huk av for tilgjenglig shots
-            </Typography>
-            <FormGroup>
-              {(Object.keys(drinks) as (keyof typeof drinks)[]).map(
-                (drink, index) => {
-                  return (
-                    <FormControlLabel
-                      key={index}
-                      checked={(shot[drink] as boolean) ?? false}
-                      onChange={() =>
-                        setShot((prevState) => {
-                          return {
-                            ...prevState,
-                            [drink]: !prevState[drink] as boolean,
-                          };
-                        })
-                      }
-                      control={<Checkbox color="error" />}
-                      label={drink}
-                    />
-                  );
-                }
-              )}
-              {alert && <Alert color="error">Velg en shot!</Alert>}
-            </FormGroup>
-            <Button
-              variant="contained"
-              color="error"
-              onClick={() => {
-                const result = (
-                  Object.keys(shot) as (keyof typeof shot)[]
-                ).filter((key) => shot[key] === true);
-                if (result.length === 0) {
-                  setAlert(true);
-                } else {
-                  startTime();
-                }
-              }}
-            >
-              Start
-            </Button>
-          </Grid>
-        </div>
+            Start
+          </Button>
+        </Grid>
       ) : isRunning ? (
-        // <FillView>
-        <Typography variant="h1" color="error">
+        <Typography variant="h1" color="error" className="center-context">
           🤪
         </Typography>
       ) : (
-        // </FillView>
         <Drink drink={typeOfDrink} startTime={startTime} />
       )}
-    </>
+    </div>
   );
 }
 
