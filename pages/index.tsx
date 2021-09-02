@@ -27,8 +27,8 @@ export function getTime(timeMin: number) {
 }
 
 export function getRandomTime() {
-  const max = 0.2;
-  const min = 0.1;
+  const max = 0.1;
+  const min = 0.01;
   return (Math.random() * (max - min) + min) * 1000 * 60;
 }
 export function Index() {
@@ -61,11 +61,33 @@ export function Index() {
   }, []);
 
   useEffect(() => {
-    async function test() {
-      await navigator.serviceWorker.register("sw.js");
-      Notification.requestPermission();
+    // Register the service worker
+    if ("serviceWorker" in navigator) {
+      // Wait for the 'load' event to not block other work
+      window.addEventListener("load", async () => {
+        // Try to register the service worker.
+        try {
+          const reg = await navigator.serviceWorker.register(
+            "service-worker.js"
+          );
+          console.log("Service worker registered! 😎", reg);
+        } catch (err) {
+          console.log("😥 Service worker registration failed: ", err);
+        }
+      });
     }
-    test();
+
+    // await navigator.serviceWorker.register("service-worker.js");
+    // Notification.requestPermission(() => {
+    //   navigator.serviceWorker.addEventListener(
+    //     "notificationclick",
+    //     (event) => {
+    //       console.log(2435);
+    //     }
+    //   );
+    // });
+
+    // test();
   }, []);
 
   function startTime() {
@@ -73,8 +95,8 @@ export function Index() {
     const shotType = setNewDrink();
     setTimeout(() => {
       if (Notification.permission === "granted") {
-        navigator.serviceWorker.ready.then(function (registration) {
-          registration.showNotification(shotType, {
+        navigator.serviceWorker.getRegistration().then(function (registration) {
+          registration?.showNotification(shotType, {
             body: "Drikk! Drikk!",
             image: `shot/${shotType}.jpg`,
             tag: shotType,
