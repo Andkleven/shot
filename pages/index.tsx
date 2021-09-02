@@ -61,10 +61,10 @@ export function Index() {
         navigator.serviceWorker.ready.then(function (registration) {
           console.log(234);
 
-          registration.showNotification("Vibration Sample", {
+          registration.showNotification(typeOfDrink, {
             body: "Buzz! Buzz!",
-            vibrate: [200, 100, 200, 100, 200, 100, 200],
-            tag: "vibration-sample",
+            image: `${typeOfDrink}.jpg`,
+            tag: typeOfDrink,
           });
         });
       }
@@ -123,7 +123,6 @@ export function Index() {
                 } else {
                   startTime();
                 }
-                new Notification("Hey");
               }}
             >
               Start
