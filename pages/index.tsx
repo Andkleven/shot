@@ -10,10 +10,20 @@ import {
 } from "@material-ui/core";
 import { drinks } from "../data/data";
 import Drink from "../components/Drink";
-// import { FillView } from "@phormix/ui";
-import { firebaseCloudMessaging } from "../utils/webPush";
-import "firebase/messaging";
-import firebase from "firebase/app";
+const base64ToUint8Array = (base64) => {
+  const padding = "=".repeat((4 - (base64.length % 4)) % 4);
+  const b64 = (base64 + padding).replace(/-/g, "+").replace(/_/g, "/");
+
+  const rawData = window.atob(b64);
+  const outputArray = new Uint8Array(rawData.length);
+
+  for (let i = 0; i < rawData.length; ++i) {
+    outputArray[i] = rawData.charCodeAt(i);
+  }
+  return outputArray;
+};
+const publicKey =
+  "BNyFFA_U1JhAvHw5l8WColvexjQyiKuNFbkkxZKcBmc-RmpNqMEkNHwBtAtwk0Wacib4VZ0ivdeALJ5USTqPXGc";
 
 type State = Partial<
   {
@@ -27,13 +37,14 @@ export function getTime(timeMin: number) {
 }
 
 export function getRandomTime() {
-  const max = 0.1;
+  const max = 0.02;
   const min = 0.01;
   return (Math.random() * (max - min) + min) * 1000 * 60;
 }
 export function Index() {
   const [typeOfDrink, setTypeOfDrink] = useState<keyof State | "">("");
   const [isRunning, setIsRunning] = useState(false);
+  const [subscription, setSubscription] = useState<PushSubscription>();
 
   const [shot, setShot] = useState<State>({});
   const [alert, setAlert] = useState(false);
@@ -49,62 +60,50 @@ export function Index() {
   useEffect(() => {
     setToken();
     async function setToken() {
-      try {
-        const token = await firebaseCloudMessaging.init();
-        if (token) {
-          console.log("token", token);
-        }
-      } catch (error) {
-        console.log(error);
+      if (typeof window !== "undefined" && "serviceWorker" in navigator) {
+        const registration = await navigator.serviceWorker.ready;
+        const sub = await registration.pushManager.subscribe({
+          userVisibleOnly: true,
+          applicationServerKey: base64ToUint8Array(publicKey),
+        });
+        registration.addEventListener("message", function handler(event) {
+          console.log(event);
+        });
+        setSubscription(sub);
       }
     }
-  }, []);
-
-  useEffect(() => {
-    // Register the service worker
-    if ("serviceWorker" in navigator) {
-      // Wait for the 'load' event to not block other work
-      window.addEventListener("load", async () => {
-        // Try to register the service worker.
-        try {
-          const reg = await navigator.serviceWorker.register(
-            "service-worker.js"
-          );
-          console.log("Service worker registered! 😎", reg);
-        } catch (err) {
-          console.log("😥 Service worker registration failed: ", err);
-        }
-      });
-    }
-
-    // await navigator.serviceWorker.register("service-worker.js");
-    // Notification.requestPermission(() => {
-    //   navigator.serviceWorker.addEventListener(
-    //     "notificationclick",
-    //     (event) => {
-    //       console.log(2435);
-    //     }
-    //   );
-    // });
-
-    // test();
   }, []);
 
   function startTime() {
     setIsRunning(true);
     const shotType = setNewDrink();
     setTimeout(() => {
-      if (Notification.permission === "granted") {
-        navigator.serviceWorker.getRegistration().then(function (registration) {
-          registration?.showNotification(shotType, {
-            body: "Drikk! Drikk!",
-            image: `shot/${shotType}.jpg`,
-            tag: shotType,
-            vibrate: [200, 100, 200, 100, 200, 100, 200],
-            sound: "212739__taira-komori__drinking2.mp3",
-          });
-        });
-      }
+      fetch("/api/notification", {
+        method: "POST",
+        body: JSON.stringify({ subscription, title: shotType }),
+        headers: {
+          "content-type": "application/json",
+        },
+      });
+      // if (Notification.permission === "granted") {
+      //   navigator.serviceWorker.getRegistration().then(function (registration) {
+      //     registration?.showNotification(shotType, {
+      //       body: "Drikk! Drikk!",
+      //       image: `shot/${shotType}.jpg`,
+      //       tag: shotType,
+      //       vibrate: [200, 100, 200, 100, 200, 100, 200],
+      //       actions: [{ action: "shot", title: "En til!!!" }],
+      //       // sound: "212739__taira-komori__drinking2.mp3",
+      //     });
+      //   });
+      // }
+      // ServiceWorkerRegistration.showNotification(shotType, {
+      //   body: "Drikk! Drikk!",
+      //   image: `shot/${shotType}.jpg`,
+      //   tag: shotType,
+      //   vibrate: [200, 100, 200, 100, 200, 100, 200],
+      //   sound: "212739__taira-komori__drinking2.mp3",
+      // });
       setIsRunning(false);
     }, getRandomTime());
   }
