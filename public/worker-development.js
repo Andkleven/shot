@@ -13,10 +13,7 @@ self.addEventListener("push", function (event) {
     tag: data.tag,
     image: `shot/${data.title}.jpg`,
     vibrate: [200, 100, 200, 100, 200, 100, 200],
-    actions: [{
-      action: "shot",
-      title: "En til!!!"
-    }],
+    // actions: [{ action: "shot", title: "En til!!!" }],
     sound: "212739__taira-komori__drinking2.mp3"
   }));
 });
@@ -44,8 +41,7 @@ self.addEventListener("notificationclick", function (event) {
     type: "window",
     includeUncontrolled: true
   }).then(function (clientList) {
-    m(event);
-
+    // m(event);
     if (clientList.length > 0) {
       let client = clientList[0];
 
