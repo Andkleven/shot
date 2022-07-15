@@ -121,7 +121,7 @@ export function Index() {
             Shot Alert!
           </Typography>
           <Typography align="center" variant="h6" color="error">
-            Huk av for tilgjenglig shots
+            Huk av for tilgjenglige shots
           </Typography>
           <FormGroup>
             {(Object.keys(drinks) as (keyof typeof drinks)[]).map(
@@ -164,10 +164,8 @@ export function Index() {
           </Button>
         </Grid>
       ) : isRunning ? (
-        <Typography variant="h1" color="error" className="center-context">
-          <div>
+        <Typography variant="h1" color="error" className="center-context center-text">
           🤪
-            </div>
         </Typography>
       ) : (
         <Drink drink={typeOfDrink} startTime={startTime} />
