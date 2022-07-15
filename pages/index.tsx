@@ -165,7 +165,9 @@ export function Index() {
         </Grid>
       ) : isRunning ? (
         <Typography variant="h1" color="error" className="center-context">
+          <div>
           🤪
+            </div>
         </Typography>
       ) : (
         <Drink drink={typeOfDrink} startTime={startTime} />
